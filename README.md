@@ -3,7 +3,7 @@
 ## Learning Goals
 
 - Find form elements using accessible query methods
-- Use the user-event library to simulate form events
+- Use the `user-event` library to simulate form events
 - Test changes to component state in response to form events
 
 ## Introduction
@@ -13,10 +13,10 @@ and test user events, this time in the context of web forms. Specifically, we'll
 look at how to identify accessible form elements and how to simulate and test
 form events.
 
-To follow along, fork and clone this repo, then run `npm install` and `npm
-test`. You may also want to run `npm start` in a separate tab so you can see our
-progress in the browser as well. We'll be doing our coding in `src/App.js` and
-`src/App.test.js`.
+To follow along, fork and clone this repo, then run `npm install` and
+`npm test`. You may also want to run `npm start` in a separate tab so you can
+see our progress in the browser as well. We'll be doing our coding in
+`src/App.js` and `src/App.test.js`.
 
 ## Building on to the Pizza Ordering App
 
@@ -57,15 +57,17 @@ We want to set up our dropdown so that it defaults to "Small", so let's write
 the test for that:
 
 ```jsx
-...
+// src/__tests__/App.test.js
+
+// ... rest of tests
 
 // Size select element
-test("size select element initially displays 'Small'", () => {})
+test("size select element initially displays 'Small'", () => {});
 ```
 
 Inside our test, we first need to render `App`, then use `getByLabelText` to
 find the element. Finally, we'll write our assertion. We can use
-[toHaveDisplayValue][] to check that the "small" option is selected:
+[toHaveDisplayValue][] to check that the "Small" option is selected:
 
 ```jsx
 test("size select element initially displays 'Small'", () => {
@@ -74,41 +76,44 @@ test("size select element initially displays 'Small'", () => {
   const selectSize = screen.getByLabelText(/select size/i);
 
   expect(selectSize).toHaveDisplayValue("Small");
-})
+});
 ```
 
-Next, we'll write the code to pass this first test. Thinking ahead a little, we
+Next, we'll write the code to pass this new test. Thinking ahead a little, we
 eventually want to display the selected size on the page. To do that, we'll need
 to have access to the size in state, so let's go ahead and make our `select`
 element a controlled input. We'll start by adding state and creating a callback
 to update state when the selected size is changed:
 
 ```jsx
-const [ size, setSize ] = useState("small");
+const [size, setSize] = useState("small");
 const selectSize = (e) => setSize(e.target.value);
 ```
 
-Then we'll add the element inside our `return`:
+Then we'll add the element inside our `<form>`:
 
 ```jsx
-<div>
-  <h3>Size</h3>
-  <label htmlFor="select-size">Select size: </label>
-  <select id="select-size" value={size} onChange={selectSize}>
-    <option value="small">Small</option>
-    <option value="medium">Medium</option>
-    <option value="large">Large</option>
-  </select>
-</div>
+<form>
+  {/* rest of form...*/}
+  <div>
+    <h3>Size</h3>
+    <label htmlFor="select-size">Select size: </label>
+    <select id="select-size" value={size} onChange={selectSize}>
+      <option value="small">Small</option>
+      <option value="medium">Medium</option>
+      <option value="large">Large</option>
+    </select>
+  </div>
+</form>
 ```
 
 The `value` attribute will display whichever size is currently selected, and the
 `onChange` handler will update the value in response to the user's selection.
 
 Let's also verify that the display updates when the user selects a different
-size. We can simulate this user action by calling [userEvent.selectOptions][selectOptions]
-and passing two arguments: our `selectSize` callback function and the `value` to
-select.
+size. We can simulate this user action by calling
+[userEvent.selectOptions][selectoptions] and passing two arguments: our
+`selectSize` callback function and the `value` to select.
 
 ```jsx
 test("select Size dropdown displays the user's selected value", () => {
@@ -123,7 +128,7 @@ test("select Size dropdown displays the user's selected value", () => {
   userEvent.selectOptions(selectSize, "large");
 
   expect(selectSize).toHaveDisplayValue("Large");
-})
+});
 ```
 
 Because we've set the dropdown up as a controlled input, we should be passing
@@ -144,8 +149,8 @@ element:
 test("'Your Selection' message initially displays 'small cheese'", () => {
   render(<App />);
 
-  expect(screen.getByText("small cheese")).toBeInTheDocument();
-})
+  expect(screen.getByText(/small cheese/i)).toBeInTheDocument();
+});
 ```
 
 Then, to get our test passing, we'll add a `p` element above the form:
@@ -153,30 +158,11 @@ Then, to get our test passing, we'll add a `p` element above the form:
 ```jsx
 <div>
   <h1>Place an Order</h1>
-  <p>Your selection:
-    <span>{` ${size} ${pepperoniIsChecked ? "pepperoni" : "cheese"}`}</span>
+  <p>
+    Your selection: {size} {pepperoniIsChecked ? "pepperoni" : "cheese"}
   </p>
-  <form>
-    ...
-
-```
-
-We've placed the text inside `span` tags to make the current selection (in this
-case, "small cheese") available to the test as an element. Alternatively, we
-could leave out the `span` tags and pass the entire text inside the `p` tag as
-the argument to `getByText`:
-
-```jsx
-<div>
-  <h1>Place an Order</h1>
-  <p>Your selection: {` ${size} ${pepperoniIsChecked ? "pepperoni" : "cheese"}`}</p>
-  <form>
-    ...
+  ...
 </div>
-```
-
-```jsx
-expect(screen.getByText("Your selection: small cheese")).toBeInTheDocument();
 ```
 
 Finally, we want to verify that the message on the screen updates when the user
@@ -191,13 +177,12 @@ test("selecting options updates the 'Your selection' message", () => {
 
   userEvent.click(addPepperoni);
 
-  expect(screen.getByText("small pepperoni")).toBeInTheDocument();
+  expect(screen.getByText(/small pepperoni/i)).toBeInTheDocument();
 
   userEvent.selectOptions(selectSize, "large");
 
-  expect(screen.getByText("large pepperoni")).toBeInTheDocument();
-
-})
+  expect(screen.getByText(/large pepperoni/i)).toBeInTheDocument();
+});
 ```
 
 We have set up the element to access the current values in state, so this test
@@ -216,56 +201,56 @@ test("'Contact Info' text box initially displays a placeholder value of 'email a
   render(<App />);
 
   expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
-
-})
+});
 ```
 
 As with our checkbox and dropdown menu, we'll add a label to our text box for
-accessibility and set it up as a controlled input:
+accessibility and set it up as a controlled input in the form:
 
 ```jsx
-
-...
-
-const [ contactInfo, setContactInfo] = useState("");
+const [contactInfo, setContactInfo] = useState("");
 const updateContactField = (e) => setContactInfo(e.target.value);
 
-...
-
 return (
-  ...
-
   <div>
-    <h3>Contact Info</h3>
-    <label htmlFor="email">Enter your email address: </label>
-    <input 
-      type="text" 
-      value={contactInfo} 
-      id="email"
-      placeholder='email address'
-      onChange={updateContactField}
-    />
+    <h1>Place an Order</h1>
+    <p>
+      Your selection: {size} {pepperoniIsChecked ? "pepperoni" : "cheese"}
+    </p>
+    <form>
+      {/*... rest of form*/}
+      <div>
+        <h3>Contact Info</h3>
+        <label htmlFor="email">Enter your email address: </label>
+        <input
+          type="text"
+          value={contactInfo}
+          id="email"
+          placeholder="email address"
+          onChange={updateContactField}
+        />
+      </div>
+    </form>
   </div>
-
-...
+);
 ```
 
 We have the test passing for the initial state, so now we just need to test what
 happens when the user enters an email address into the box. This time, we'll
-search for the element using `getByLabelText`, and we'll use [userEvent.type][] to
-simulate the user typing in a value. `userEvent.type` takes two arguments: the
-text box element, and the value to be entered.
+search for the element using `getByLabelText`, and we'll use [userEvent.type][]
+to simulate the user typing in a value. `userEvent.type` takes two arguments:
+the text box element, and the value to be entered.
 
 ```js
 test("the page shows information the user types into the contact form field", () => {
   render(<App />);
 
   const contact = screen.getByLabelText(/enter your email address/i);
-  
+
   userEvent.type(contact, "pizzafan@email.com");
 
   expect(contact).toHaveValue("pizzafan@email.com");
-})
+});
 ```
 
 Once again, because our input is controlled, we're passing this test without
@@ -283,22 +268,19 @@ the page:
 test("form contains a 'Submit Order' button", () => {
   render(<App />);
 
-  expect(screen.getByRole("button", { name: /submit order/i })).toBeInTheDocument();
-})
+  expect(
+    screen.getByRole("button", { name: /submit order/i })
+  ).toBeInTheDocument();
+});
 ```
 
 Then to get this test passing we'll add our button to the bottom of the form:
 
 ```jsx
-...
-
 <form>
-
-  ...
+  {/*... rest of form*/}
   <button type="submit">Submit Order</button>
 </form>
-
-...
 ```
 
 When the user submits the order, we want to display a message:
@@ -309,19 +291,19 @@ test("clicking the Place Order button displays a thank you message", () => {
 
   userEvent.click(screen.getByRole("button", { name: /submit order/i }));
 
-  expect(screen.getByText("Thanks for your order!")).toBeInTheDocument();
-})
+  expect(screen.getByText(/thanks for your order!/i)).toBeInTheDocument();
+});
 ```
 
 To get this passing, we'll keep track of the order submission status in state,
 and create a `submitOrder` callback function:
 
 ```jsx
-  const [ orderIsSubmitted, setOrderIsSubmitted ] = useState(false);
-  const submitOrder = (e) => {
-    e.preventDefault();
-    setOrderIsSubmitted(true);
-  }
+const [orderIsSubmitted, setOrderIsSubmitted] = useState(false);
+const submitOrder = (e) => {
+  e.preventDefault();
+  setOrderIsSubmitted(true);
+};
 ```
 
 We'll then add an `onSubmit` attribute to our form that will call `submitOrder`,
@@ -329,13 +311,76 @@ and use a ternary to conditionally render the message if the order has been
 submitted:
 
 ```jsx
-<form onSubmit={submitOrder}>
+<form onSubmit={submitOrder}>{/*...rest of form*/}</form>;
+{
+  orderIsSubmitted ? <h2>Thanks for your order!</h2> : null;
+}
+```
 
-  ...
-</form>
+Here's what the completed component should look like:
 
-{ orderIsSubmitted ? <h2>Thanks for your order!</h2> : null}
-...
+```jsx
+function App() {
+  const [pepperoniIsChecked, setPepperoniIsChecked] = useState(false);
+  const [size, setSize] = useState("small");
+  const [contactInfo, setContactInfo] = useState("");
+  const [orderIsSubmitted, setOrderIsSubmitted] = useState(false);
+
+  const togglePepperoni = (e) => setPepperoniIsChecked(e.target.checked);
+
+  const selectSize = (e) => setSize(e.target.value);
+
+  const updateContactField = (e) => setContactInfo(e.target.value);
+
+  const submitOrder = (e) => {
+    e.preventDefault();
+    setOrderIsSubmitted(true);
+  };
+
+  return (
+    <div>
+      <h1>Place an Order</h1>
+      <p>
+        Your selection: {size} {pepperoniIsChecked ? "pepperoni" : "cheese"}
+      </p>
+      <form onSubmit={submitOrder}>
+        <div>
+          <h3>Toppings</h3>
+          <input
+            type="checkbox"
+            id="pepperoni"
+            checked={pepperoniIsChecked}
+            aria-checked={pepperoniIsChecked}
+            onChange={togglePepperoni}
+          />
+          <label htmlFor="pepperoni">Add pepperoni</label>
+        </div>
+        <div>
+          <h3>Size</h3>
+          <label htmlFor="select-size">Select size: </label>
+          <select id="select-size" value={size} onChange={selectSize}>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+        <div>
+          <h3>Contact Info</h3>
+          <label htmlFor="email">Enter your email address: </label>
+          <input
+            type="text"
+            value={contactInfo}
+            id="email"
+            placeholder="email address"
+            onChange={updateContactField}
+          />
+        </div>
+        <button type="submit">Submit Order</button>
+      </form>
+      {orderIsSubmitted ? <h2>Thanks for your order!</h2> : null}
+    </div>
+  );
+}
 ```
 
 ## Conclusion
@@ -367,15 +412,21 @@ the tools and options available for using Jest to test React apps:
 - [W3C: Accessible Forms Tutorial][w3-accessibility]
 
 [queries]: https://testing-library.com/docs/queries/about
-[cheatsheet]: https://testing-library.com/docs/react-testing-library/cheatsheet/#!
+[cheatsheet]:
+  https://testing-library.com/docs/react-testing-library/cheatsheet/#!
 [jest-matchers]: https://jestjs.io/docs/using-matchers
 [jest-dom]: https://github.com/testing-library/jest-dom
 [user-event]: https://testing-library.com/docs/ecosystem-user-event/
 [priority]: https://testing-library.com/docs/queries/about/#priority
-[mdn-aria-roles]: https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques
+[mdn-aria-roles]:
+  https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques
 [w3-accessibility]: https://www.w3.org/WAI/tutorials/forms/
-[getByLabelText]: https://testing-library.com/docs/queries/bylabeltext/
-[toHaveDisplayValue]: https://github.com/testing-library/jest-dom#tohavedisplayvalue
-[selectOptions]: https://testing-library.com/docs/ecosystem-user-event/#selectoptionselement-values-options
-[getByPlaceholderText]: https://testing-library.com/docs/queries/byplaceholdertext/
-[userEvent.type]: https://testing-library.com/docs/ecosystem-user-event/#typeelement-text-options
+[getbylabeltext]: https://testing-library.com/docs/queries/bylabeltext/
+[tohavedisplayvalue]:
+  https://github.com/testing-library/jest-dom#tohavedisplayvalue
+[selectoptions]:
+  https://testing-library.com/docs/ecosystem-user-event/#selectoptionselement-values-options
+[getbyplaceholdertext]:
+  https://testing-library.com/docs/queries/byplaceholdertext/
+[userevent.type]:
+  https://testing-library.com/docs/ecosystem-user-event/#typeelement-text-options
