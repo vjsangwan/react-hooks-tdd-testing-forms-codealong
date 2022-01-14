@@ -38,8 +38,7 @@ You'll see in the code files that we've already made a few updates, including
 wrapping the checkbox element inside a form element. From here, our goals are
 to:
 
-1. add an input for selecting the size of the pizza; we'll use a dropdown for
-   this
+1. add an input for selecting the size of the pizza; we'll use a dropdown
 2. display the selected size and toppings in response to user actions
 3. add a text input where the customer will enter their email address
 4. add an "Order" button that will submit the form
